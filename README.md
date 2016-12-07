@@ -1,0 +1,1 @@
+There are so many cuisine that is famous in the area where we live. However, the trend of cuisine changes over time in a particular area. Hence, in this project I find location based cuisines in North America and also found how popular cuisine trend changes over time.
