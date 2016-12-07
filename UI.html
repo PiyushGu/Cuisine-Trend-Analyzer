@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script
+src="http://maps.googleapis.com/maps/api/js">
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+
+<script src="http://google-maps-utility-library-v3.googlecode.com/svn/tags/infobox/1.1.9/src/infobox.js"></script>
+
+
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css" type="text/css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js" type="text/javascript"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script src="slide.js"></script>
+<link rel="stylesheet" href="slider.css"/>
+<script>
+$(function() {
+            $( "#slider-3" ).slider({
+               range:true,
+               min: 2010,
+               max: 2015,
+               values: [ 2010, 2012 ],
+               slide: function( event, ui ) {
+                  $( "#time" ).val( "" + ui.values[ 0 ] + "-" + ui.values[ 1 ] );
+               }
+           });
+         $( "#time" ).val($( "#slider-3" ).slider( "values", 0 ) +
+            "-" + $( "#slider-3" ).slider( "values", 1 ) );
+         });
+
+var map;
+var myCenter=new google.maps.LatLng(38,-104);
+var markers = [];
+var infowindows = [];
+
+function initialize()
+{
+var mapProp = {
+  center:myCenter,
+  zoom:5,
+  icon : 'C:\Users\Piyush\Desktop\red-flag-pointer',
+  disableDefaultUI:true,
+  mapTypeId:google.maps.MapTypeId.HYBRID 
+  };
+
+  map = new google.maps.Map(document.getElementById("googleMap"),mapProp);
+
+  google.maps.event.addListener(map, 'idle', function(event) {
+    //placeMarker(map.getCenter());
+	deleteMarkers();
+	addMarker(map.getCenter(),"1");
+	addMarker(myCenter,"2");
+	showMarkers();
+	
+  //getData();
+ // hitService();
+  });
+
+  
+  
+}
+
+function getData()
+{
+var bounds = map.getBounds();
+	var southWest = bounds.getSouthWest();
+  var northEast = bounds.getNorthEast();
+  
+  var minLat = southWest.lat();
+  var minLng = southWest.lng();
+  var maxLat = northEast.lat();
+  var maxLng = northEast.lng();
+  var res = $( "#time" ).val().split("-")
+  var startYear = res[0];
+  alert(startYear);
+  var endYear = res[1];
+ $.ajax({
+                type: 'GET',
+                url: 'http://10.0.2.15:8080/area/'+minLat+'/'+minLng+'/'+maxLat+'/'+maxLng+'/'+startYear+'/'+endYear,
+                data: {},
+                dataType: 'json',
+                success: function(data) 
+                { alert('got here with data'); 
+				hitService(data)},
+                error: function() { alert('something bad happened'); }
+                });
+}
+function hitService(jsonResult)
+{
+
+  //service call 
+  
+  //var jsonResult = "";
+  var result = JSON.parse(jsonResult);
+  <!-- deleteMarkers(); -->
+
+  for(i = 0 ; i< result.length ; i++)
+  {
+	var cusine = result[i].cuisine;
+	var score = result[i].score;
+	var lng = parseFloat(result[i].center_long);
+	var lat = parseFloat(result[i].center_lat);
+	var center=new google.maps.LatLng(lat,lng);
+	addMarker(center,cusine);
+  }
+  
+}
+
+<!-- function placeMarker(location) {	
+	<!-- markers = [];
+  <!-- var marker = new google.maps.Marker({ -->
+    <!-- position: location, -->
+	
+    <!-- map: map, -->
+  <!-- }); -->
+  <!-- var infowindow = new google.maps.InfoWindow({ -->
+    <!-- content: 'Latitude: ' + location.lat() + '<br>Longitude: ' + location.lng() -->
+  <!-- }); -->
+  <!-- infowindow.open(map,marker); -->
+  <!-- markers.push(marker); --> -->
+<!-- } --> -->
+function addMarker(location,text) {
+var marker = new google.maps.Circle({
+  center:location,
+  radius:20000,
+  strokeColor:"#0000FF",
+  strokeOpacity:0.8,
+  strokeWeight:2,
+  fillColor:"#0000FF",
+  fillOpacity:0.4
+});
+  <!-- var marker = new google.maps.Marker({
+    <!-- position: location, -->
+    <!-- map: map -->
+  markers.push(marker);
+  
+  var labelText = '<div style="color: #FFF">'+text+'</div>';
+  
+  var myOptions = {
+        content: labelText,
+        boxStyle: {
+            background: '#000',
+            border: "1px solid black",
+            textAlign: "center",
+            fontSize: "8pt",
+            width: "90px"
+        },
+        disableAutoPan: true,
+        pixelOffset: new google.maps.Size(-45, 0),
+        position: location,
+        closeBoxURL: "",
+        isHidden: false,
+        enableEventPropagation: true
+    };
+
+    var label = new InfoBox(myOptions);
+    //label.open(map);
+
+    google.maps.event.addListener(marker, 'center_changed', function () {
+        label.setPosition(marker.getCenter());
+    });
+  var contentString = '<div style="width: 94.2%; padding-left:10px; height: 25px;float: left;color: #FFF;background: #ed1e79;line-height: 25px;border-radius:5px 5px 0px 0px;"><strong><b>"You feild"</b></strong></div><div style="clear:both;height:0px;"><div style="float:left;width:90%;padding:5px 10px;border:1px solid #ccc;border-top:none;border-radius:0px 0px 5px 5px;"><div style="float:left;color:#666;font-size:18px;font-weight:bold;margin:5px 0px;"> <div style="padding: 0px;">]]..text..[[</div></div><div style="clear:both;height:0px;"></div><div style="float:left;line-height:18px;color:#666;font-size:13px;">"You feild"</div><div style="clear:both;height:0px;"></div><form action=\"navigat:"You feild"\"><input type=\"submit\"/ style=\"background:#7e7e7e;float:right;color:#FFF;padding:5px 7px;font-size:10px;font-weight:bold;border:none;margin:5px 0px; border-radius:0px !important;\" value=\"More Info\" ></form></div></div>';  
+ var infowindow = new google.maps.InfoWindow({
+  content:text
+  });
+ // infowindow.open(map,marker);
+infowindows.push(label);
+}
+
+// Sets the map on all markers in the array.
+function setMapOnAll(map) {
+  for (var i = 0; i < markers.length; i++) {
+    markers[i].setMap(map);
+	//infowindows[i].open(map,markers[i]);
+	infowindows[i].open(map);
+  }
+}
+
+// Removes the markers from the map, but keeps them in the array.
+function clearMarkers() {
+  setMapOnAll(null);
+}
+
+// Shows any markers currently in the array.
+function showMarkers() {
+  setMapOnAll(map);
+}
+
+// Deletes all markers in the array by removing references to them.
+function deleteMarkers() {
+  clearMarkers();
+  markers = [];
+  infowindows = [];
+}
+google.maps.event.addDomListener(window, 'load', initialize);
+</script>
+</head>
+
+<body bgcolor="FloralWhite">
+<div id="googleMap" style="width:1200px;height:550px;"></div>
+
+<p>
+         <label for="time" style="border:0; font-weight:bold;font-size:20px;">Time Range:</label>
+         <input type="text" id="time" disabled
+            style="border:0; color:#b9cd6d; font-weight:bold; font-size:20px
+			;background-color:FloralWhite;">
+      </p>
+      <div id="slider-3"></div>
+	  
+	  <script>
+         
+      </script>
+
+</body>
+</html>
